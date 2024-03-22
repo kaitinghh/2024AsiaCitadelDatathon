@@ -6,6 +6,7 @@ import sys
 # Custom imports 
 from reports.MultiPage import MultiPage
 from reports.location.location_report import location_report
+from reports.migration.migration_report import migration_report
 
 # Create an instance of the app 
 app = MultiPage()
@@ -21,5 +22,6 @@ st.set_page_config(
 # Add all your applications (pages) here
 
 app.add_page("Location", location_report)
+app.add_page("Migration", migration_report)
 
 app.run()

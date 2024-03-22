@@ -3,11 +3,15 @@ import geopandas as gpd
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
+from ..constants import neighbouring_states
 
 geojson_file = 'https://raw.githubusercontent.com/python-visualization/folium/master/examples/data/us-states.json'
 geojson_gpd = gpd.read_file(geojson_file)
 obesity = pd.read_csv("data/Obesity.csv")
 obesity_total = obesity[obesity["StratificationCategory1"] == "Total"]
+
+#migrated in 2021, effect will appear in 2022
+migration = pd.read_csv("data/21-22.csv")
 
 def ui():
 
@@ -28,7 +32,7 @@ def ui():
     question = st.selectbox("Select a question", questions)
     # zoom_level = st.slider('Zoom level', min_value=1, max_value=18, value=10)
 
-    generate_map(obesity_total, year, question)
+    generate_obesity_map(obesity_total, year, question)
 
     with open(f"reports/location/maps/{year}{question}.html", 'r') as f:
         html_map = f.read()
@@ -36,7 +40,7 @@ def ui():
     components.html(html_map, width=800, height=600)
 
 
-def generate_map(df, year, question):
+def generate_obesity_map(df, year, question):
   masked_df = df[(df["YearStart"] == year) & (df["Question"] == question)]
 
   m = folium.Map(location=[47.751076, -120.740135], zoom_start=3.3)
@@ -54,5 +58,3 @@ def generate_map(df, year, question):
       bins=[0, 10, 20, 30, 40, 50, 60],
       highlight=True,
   ).add_to(m)
-
-  m.save(f'reports/location/maps/{year}{question}.html')
