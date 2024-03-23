@@ -1,29 +1,38 @@
-import folium
 import geopandas as gpd
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 from ..constants import neighboring_states
 import matplotlib.pyplot as plt
+from ..neighbor_migration.ui import correlation_table, plot_graph # reusing these functions
+from ..neighbor_migration.ui import aggregated_migration_df, obese_adults
 
 def ui():
-    st.title("Neighbour State Migration vs Obesity Rates")
+    st.title("Foreign Migration vs Obesity Rates")
     state = st.selectbox("State", neighboring_states.keys())
-    plot_graph(state)
+
+    mva = st.checkbox('Display moving average line')
+    window_size = st.slider("Moving Average Window", min_value=1, max_value=5)
+    plot_graph(aggregated_foreign_migration_df, obese_adults, state, mva, window_size, "Foreign")
+    foreign_cc_df = correlation_table(aggregated_foreign_migration_df, obese_adults, window_size, "Foreign", display=True)
+    neighbor_cc_df = correlation_table(aggregated_migration_df, obese_adults, window_size, "Neighboring", display=False)
+
+    combined_cc_df = pd.merge(neighbor_cc_df, foreign_cc_df, on="State", suffixes=(' Neighbor', ' Foreign'))
+    combined_cc_df = combined_cc_df.dropna()
+    sort_by = st.selectbox("Sort by", ["Neighbor", "Foreign"])
+    st.title("Comparison between Neighboring & Foreign Migration Correlation Coefficients")
+    comparison_df(combined_cc_df, sort_by)
+
 
 geojson_file = 'https://raw.githubusercontent.com/python-visualization/folium/master/examples/data/us-states.json'
 geojson_gpd = gpd.read_file(geojson_file)
-obesity = pd.read_csv("data/Obesity.csv")
-obesity_total = obesity[obesity["StratificationCategory1"] == "Total"]
 
 migration = pd.read_csv("data/10-22.csv")
 
-obese_adults = obesity_total[(obesity_total["Question"] == 'Percent of adults aged 18 years and older who have obesity')]
-
 migration = migration.dropna()
 filtered_migration_df = migration[(migration["From"] == "Abroad") & (migration["Type"] =="Estimate")]
-aggregated_migration_df = filtered_migration_df
-aggregated_migration_df["Value"] = pd.to_numeric(aggregated_migration_df["Value"])
+aggregated_foreign_migration_df = filtered_migration_df
+aggregated_foreign_migration_df["Value"] = pd.to_numeric(aggregated_foreign_migration_df["Value"])
 
 def min_max_normalize(df, column):
     min_val = df[column].min()
@@ -31,28 +40,24 @@ def min_max_normalize(df, column):
     df[column + '_normalized'] = (df[column] - min_val) / (max_val - min_val)
     return df
 
-def plot_graph(state):
-    fig, ax = plt.subplots()
-    masked_migration = aggregated_migration_df[aggregated_migration_df["To"] == state]
-    masked_obesity = obese_adults[obese_adults["LocationDesc"] == state]
+def comparison_df(combined_cc_df, sort_by):
+    combined_cc_df = combined_cc_df.sort_values("Correlation Coefficient " + sort_by, ascending=False)
+    st.dataframe(combined_cc_df)
 
-    masked_migration = min_max_normalize(masked_migration, "Value")
-    masked_obesity = min_max_normalize(masked_obesity, "Data_Value")
+# def display_bar_charts(df):
+#     st.title("Comparison between Neighboring & Foreign Migration Correlation Coefficients")
+#     st.write("This display calculates the correlation coefficient of migration rates and obesity rates, \
+#              for a given MVA window size and migration type.")
+#     st.write("You can hover over the charts to see the exact correlation coefficient value.")
+#     df.apply(lambda x: display_bar_chart(x), axis=1)
 
-    masked_migration["Year"] = pd.to_numeric(masked_migration["Year"])
-    masked_obesity["YearStart"] = pd.to_numeric(masked_obesity["YearStart"])
+# def display_bar_chart(row):
+#     state = row['State']
+#     neighbor_corr = row['Correlation Coefficient Neighbor']
+#     foreign_corr = row['Correlation Coefficient Foreign']
+    
+#     df_row = pd.DataFrame({'Correlation Coefficient': [neighbor_corr, foreign_corr]}, 
+#                           index=['Neighbor', 'Foreign'])
 
-    masked_migration = masked_migration.sort_values(by='Year')
-    masked_obesity = masked_obesity.sort_values(by='YearStart')
-
-    ax.plot(masked_migration['Year'], masked_migration['Value_normalized'], label='Migration', marker='x')
-    ax.plot(masked_obesity['YearStart'], masked_obesity['Data_Value_normalized'], label='Obesity', marker='o')
-    fig.set_size_inches(6, 3.7)
-    ax.set_xlabel('Year')
-    ax.set_ylabel('Normalized Rate')
-    ax.set_xlim(2010, 2023)
-    ax.set_title(f'Foreign Migration and Obesity Rates against Time ({state})')
-    ax.legend()
-
-    # Display plot in Streamlit
-    st.pyplot(fig)
+#     st.write(f"### {state}")
+#     st.bar_chart(df_row, use_container_width=True, height=200, width=200)

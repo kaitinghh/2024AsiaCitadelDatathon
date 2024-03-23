@@ -11,9 +11,8 @@ def ui():
     state = st.selectbox("State", neighboring_states.keys())
     mva = st.checkbox('Display moving average line')
     window_size = st.slider("Moving Average Window", min_value=1, max_value=5)
-    plot_graph(aggregated_migration_df, obese_adults, state, mva, window_size)
-    correlation_table(aggregated_migration_df, obese_adults, window_size)
-
+    plot_graph(aggregated_migration_df, obese_adults, state, mva, window_size, "Neighboring")
+    correlation_table(aggregated_migration_df, obese_adults, window_size, "Neighboring", display=True)
 
 geojson_file = 'https://raw.githubusercontent.com/python-visualization/folium/master/examples/data/us-states.json'
 geojson_gpd = gpd.read_file(geojson_file)
@@ -45,7 +44,7 @@ def min_max_normalize(df, column):
     df[column + '_normalized'] = (df[column] - min_val) / (max_val - min_val)
     return df
 
-def plot_graph(migration_df, obesity_df, state, mva, window_size):
+def plot_graph(migration_df, obesity_df, state, mva, window_size, mode):
     fig, ax = plt.subplots()
     masked_migration = migration_df[migration_df["To"] == state]
     masked_obesity = obesity_df[obesity_df["LocationDesc"] == state]
@@ -58,8 +57,6 @@ def plot_graph(migration_df, obesity_df, state, mva, window_size):
 
     masked_migration = masked_migration.sort_values(by='Year')
     masked_obesity = masked_obesity.sort_values(by='YearStart')
-    print(masked_obesity)
-    print(masked_migration)
 
     ax.plot(masked_migration['Year'], masked_migration['Value_normalized'], label='Migration', marker='x')
     ax.plot(masked_obesity['YearStart'], masked_obesity['Data_Value_normalized'], label='Obesity', marker='o')
@@ -71,9 +68,9 @@ def plot_graph(migration_df, obesity_df, state, mva, window_size):
     ax.set_xlabel('Year')
     ax.set_ylabel('Normalized Rate')
     ax.set_xlim(2010, 2023)
-    ax.set_title(f'Neighboring State Migration and Obesity Rates against Time ({state})')
+    ax.set_title(f'{mode} Migration and Obesity Rates against Time ({state})')
     ax.legend()
-    
+
     st.pyplot(fig)
 
 def calc_mva_coefficient(migration_df, obesity_df, state, window_size):
@@ -97,7 +94,7 @@ def calc_mva_coefficient(migration_df, obesity_df, state, window_size):
             
     return correlation_coefficient
 
-def correlation_table(migration_df, obesity_df, window_size):
+def correlation_table(migration_df, obesity_df, window_size, mode, display):
     correlation_df = pd.DataFrame({'State': [], 'Correlation Coefficient': []})
 
     for state in neighboring_states.keys():
@@ -107,6 +104,9 @@ def correlation_table(migration_df, obesity_df, window_size):
     
     correlation_df = correlation_df.sort_values("Correlation Coefficient", ascending=False)
 
-    st.title(f"Correlation Coefficient between Obesity Rate and MVA Neighbor Migration Rates (Window size: {window_size})")
-    st.dataframe(correlation_df)
-    st.write("Number of states with correlation coefficient > 0.5:", len(correlation_df[correlation_df["Correlation Coefficient"] > 0.5]))
+    if display:
+        st.title(f"Correlation Coefficient between Obesity Rate and MVA {mode} Migration Rates (Window size: {window_size})")
+        st.dataframe(correlation_df)
+        st.write("Number of states with correlation coefficient > 0.5:", len(correlation_df[correlation_df["Correlation Coefficient"] > 0.5]))
+
+    return correlation_df

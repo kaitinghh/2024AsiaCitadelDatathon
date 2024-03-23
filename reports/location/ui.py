@@ -10,8 +10,6 @@ geojson_gpd = gpd.read_file(geojson_file)
 obesity = pd.read_csv("data/Obesity.csv")
 obesity_total = obesity[obesity["StratificationCategory1"] == "Total"]
 
-migration = pd.read_csv("data/10-22.csv")
-
 def ui():
 
     st.title('Dynamic Map of Obesity Rates by Region over Time')
