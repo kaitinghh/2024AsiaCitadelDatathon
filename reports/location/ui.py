@@ -36,11 +36,9 @@ def ui():
 
 
 def generate_obesity_map(df, year, question):
-  masked_df = df[(df["YearStart"] == year) & (df["Question"] == question)]
-
-  m = folium.Map(location=[47.751076, -120.740135], zoom_start=3.3)
-
-  folium.Choropleth(
+    masked_df = df[(df["YearStart"] == year) & (df["Question"] == question)]
+    m = folium.Map(location=[47.751076, -120.740135], zoom_start=3.3)
+    folium.Choropleth(
       geo_data=geojson_gpd,
       name='choropleth',
       data=masked_df,
@@ -52,4 +50,6 @@ def generate_obesity_map(df, year, question):
       legend_name='Value',
       bins=[0, 10, 20, 30, 40, 50, 60],
       highlight=True,
-  ).add_to(m)
+      ).add_to(m)
+    
+    m.save(f'reports/location/maps/{year}{question}.html')

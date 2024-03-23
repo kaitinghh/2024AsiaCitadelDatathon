@@ -32,6 +32,12 @@ def filter_migration(migration_df):
             filtered_records.append(row)
     return pd.DataFrame(filtered_records)
 
+def populate_migration(df): # function to add a dummy data point for 2020
+    existing_rows = df[df["Year"] == 2021 | df["Year"] == 2019]
+    row_2020 = existing_rows.copy().sum(axis=0)
+    df = df.append(row_2020)
+    return df
+
 migration = migration.dropna()
 migration = migration[migration["Type"] == "Estimate"]
 filtered_migration_df = filter_migration(migration)
