@@ -3,12 +3,12 @@ import geopandas as gpd
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
-from ..constants import neighbouring_states
+from ..constants import neighboring_states
 import matplotlib.pyplot as plt
 
 def ui():
     st.title("Neighbour State Migration vs Obesity Rates")
-    state = st.selectbox("State", neighbouring_states.keys())
+    state = st.selectbox("State", neighboring_states.keys())
     plot_graph(state)
 
 geojson_file = 'https://raw.githubusercontent.com/python-visualization/folium/master/examples/data/us-states.json'
@@ -20,19 +20,10 @@ migration = pd.read_csv("data/10-22.csv")
 
 obese_adults = obesity_total[(obesity_total["Question"] == 'Percent of adults aged 18 years and older who have obesity')]
 
-def filter_migration(migration_df):
-    filtered_records = []
-    for index, row in migration_df.iterrows():
-        origin = row['From']
-        destination = row['To']
-        if destination in neighbouring_states.get(origin, []):
-            filtered_records.append(row)
-    return pd.DataFrame(filtered_records)
-
 migration = migration.dropna()
-filtered_migration_df = filter_migration(migration)
-aggregated_migration_df = filtered_migration_df.groupby(['To', 'Year']).sum().reset_index()
-aggregated_migration_df = aggregated_migration_df.rename(columns={"Unnamed: 0": "Value"})
+filtered_migration_df = migration[(migration["From"] == "Abroad") & (migration["Type"] =="Estimate")]
+aggregated_migration_df = filtered_migration_df
+aggregated_migration_df["Value"] = pd.to_numeric(aggregated_migration_df["Value"])
 
 def min_max_normalize(df, column):
     min_val = df[column].min()
@@ -53,15 +44,14 @@ def plot_graph(state):
 
     masked_migration = masked_migration.sort_values(by='Year')
     masked_obesity = masked_obesity.sort_values(by='YearStart')
-    print(masked_obesity)
-    print(masked_migration)
 
     ax.plot(masked_migration['Year'], masked_migration['Value_normalized'], label='Migration', marker='x')
     ax.plot(masked_obesity['YearStart'], masked_obesity['Data_Value_normalized'], label='Obesity', marker='o')
+    fig.set_size_inches(6, 3.7)
     ax.set_xlabel('Year')
     ax.set_ylabel('Normalized Rate')
     ax.set_xlim(2010, 2023)
-    ax.set_title(f'Neighboring State Migration and Obesity Rates against Time ({state})')
+    ax.set_title(f'Foreign Migration and Obesity Rates against Time ({state})')
     ax.legend()
 
     # Display plot in Streamlit

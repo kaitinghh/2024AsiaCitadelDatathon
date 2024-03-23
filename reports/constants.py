@@ -1,4 +1,4 @@
-neighbouring_states = {
+neighboring_states = {
   "Alabama": ["Florida", "Georgia", "Mississippi", "Tennessee"],
   "Alaska": [],
   "Arizona": ["California", "Colorado", "Nevada", "New Mexico", "Utah"],

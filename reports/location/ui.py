@@ -3,24 +3,22 @@ import geopandas as gpd
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
-from ..constants import neighbouring_states
+from ..constants import neighboring_states
 
 geojson_file = 'https://raw.githubusercontent.com/python-visualization/folium/master/examples/data/us-states.json'
 geojson_gpd = gpd.read_file(geojson_file)
 obesity = pd.read_csv("data/Obesity.csv")
 obesity_total = obesity[obesity["StratificationCategory1"] == "Total"]
 
-#migrated in 2021, effect will appear in 2022
 migration = pd.read_csv("data/10-22.csv")
 
 def ui():
 
     st.title('Dynamic Map of Obesity Rates by Region over Time')
-    st.write('Observe how the obesity rates in different states changed over the years from 2011 to 2022.')
+    st.write('### Observe how the obesity rates in different states changed over the years from 2011 to 2022.')
     st.write('Black regions are states with missing data.')
     st.write('Disclaimer: Data from before 2011 were filtered from this display as there were a lot of missing data.')
 
-    # User inputs for location and zoom level
     # years = [2001, 2003, 2005, 2007, 2009, 2011, 2012, 2013, 2014, 
     #          2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022]
     year = st.slider('Select a value', min_value=2011, max_value=2022, step=1)
@@ -30,7 +28,6 @@ def ui():
        'Percent of adults aged 18 years and older who have an overweight classification',
        'Percent of adults aged 18 years and older who have obesity']
     question = st.selectbox("Select a question", questions)
-    # zoom_level = st.slider('Zoom level', min_value=1, max_value=18, value=10)
 
     generate_obesity_map(obesity_total, year, question)
 
