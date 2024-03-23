@@ -11,7 +11,7 @@ obesity = pd.read_csv("data/Obesity.csv")
 obesity_total = obesity[obesity["StratificationCategory1"] == "Total"]
 
 #migrated in 2021, effect will appear in 2022
-migration = pd.read_csv("data/21-22.csv")
+migration = pd.read_csv("data/10-22.csv")
 
 def ui():
 
