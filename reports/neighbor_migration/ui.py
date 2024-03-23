@@ -19,7 +19,7 @@ geojson_gpd = gpd.read_file(geojson_file)
 obesity = pd.read_csv("data/Obesity.csv")
 obesity_total = obesity[obesity["StratificationCategory1"] == "Total"]
 
-migration = pd.read_csv("data/10-22.csv")
+migration = pd.read_csv("data/10-22-filled.csv")
 
 obese_adults = obesity_total[(obesity_total["Question"] == 'Percent of adults aged 18 years and older who have obesity')]
 
@@ -31,12 +31,6 @@ def filter_migration(migration_df):
         if destination in neighboring_states.get(origin, []):
             filtered_records.append(row)
     return pd.DataFrame(filtered_records)
-
-def populate_migration(df): # function to add a dummy data point for 2020
-    existing_rows = df[df["Year"] == 2021 | df["Year"] == 2019]
-    row_2020 = existing_rows.copy().sum(axis=0)
-    df = df.append(row_2020)
-    return df
 
 migration = migration.dropna()
 migration = migration[migration["Type"] == "Estimate"]

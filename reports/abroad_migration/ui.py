@@ -19,15 +19,15 @@ def ui():
 
     combined_cc_df = pd.merge(neighbor_cc_df, foreign_cc_df, on="State", suffixes=(' Neighbor', ' Foreign'))
     combined_cc_df = combined_cc_df.dropna()
-    sort_by = st.selectbox("Sort by", ["Neighbor", "Foreign"])
     st.title("Comparison between Neighboring & Foreign Migration Correlation Coefficients")
+    sort_by = st.selectbox("Sort by", ["Neighbor", "Foreign"])
     comparison_df(combined_cc_df, sort_by)
 
 
 geojson_file = 'https://raw.githubusercontent.com/python-visualization/folium/master/examples/data/us-states.json'
 geojson_gpd = gpd.read_file(geojson_file)
 
-migration = pd.read_csv("data/10-22.csv")
+migration = pd.read_csv("data/10-22-filled.csv")
 
 migration = migration.dropna()
 filtered_migration_df = migration[(migration["From"] == "Abroad") & (migration["Type"] =="Estimate")]
