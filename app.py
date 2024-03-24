@@ -1,4 +1,8 @@
 import streamlit as st
+import warnings
+
+# Suppress all warnings
+warnings.filterwarnings("ignore")
 
 from reports.MultiPage import MultiPage
 from reports.location.location_report import location_report

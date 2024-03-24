@@ -55,6 +55,19 @@ def plot_graph(migration_df, obesity_df, state, mva, window_size, mode):
     masked_migration["Year"] = pd.to_numeric(masked_migration["Year"])
     masked_obesity["YearStart"] = pd.to_numeric(masked_obesity["YearStart"])
 
+    # Fill in missing values
+
+    if state == "Florida":
+        value_2020 = masked_obesity[masked_obesity["YearStart"] == 2020]["Data_Value_normalized"].iloc[0]
+        value_2022 = masked_obesity[masked_obesity["YearStart"] == 2022]["Data_Value_normalized"].iloc[0]
+        masked_obesity.at[41948, "Data_Value_normalized"] = (value_2020+value_2022)/2
+
+    if state == "New Jersey":
+        value_2018 = masked_obesity[masked_obesity["YearStart"] == 2018]["Data_Value_normalized"].iloc[0]
+        value_2020 = masked_obesity[masked_obesity["YearStart"] == 2020]["Data_Value_normalized"].iloc[0]
+        entry_2019 = {"LocationDesc" : state, "YearStart": 2019, "Data_Value_normalized": (value_2018+value_2020)/2}
+        masked_obesity = masked_obesity.append(entry_2019, ignore_index=True)
+
     masked_migration = masked_migration.sort_values(by='Year')
     masked_obesity = masked_obesity.sort_values(by='YearStart')
 
@@ -79,6 +92,17 @@ def calc_mva_coefficient(migration_df, obesity_df, state, window_size):
 
     masked_migration = min_max_normalize(masked_migration, "Value")
     masked_obesity = min_max_normalize(masked_obesity, "Data_Value")
+
+    if state == "Florida":
+        value_2020 = masked_obesity[masked_obesity["YearStart"] == 2020]["Data_Value_normalized"].iloc[0]
+        value_2022 = masked_obesity[masked_obesity["YearStart"] == 2022]["Data_Value_normalized"].iloc[0]
+        masked_obesity.at[41948, "Data_Value_normalized"] = (value_2020+value_2022)/2
+
+    if state == "New Jersey":
+        value_2018 = masked_obesity[masked_obesity["YearStart"] == 2018]["Data_Value_normalized"].iloc[0]
+        value_2020 = masked_obesity[masked_obesity["YearStart"] == 2020]["Data_Value_normalized"].iloc[0]
+        entry_2019 = {"LocationDesc" : state, "YearStart": 2019, "Data_Value_normalized": (value_2018+value_2020)/2}
+        masked_obesity = masked_obesity.append(entry_2019, ignore_index=True)
 
     masked_migration["Year"] = pd.to_datetime(masked_migration["Year"], format="%Y")
     masked_obesity["YearStart"] = pd.to_datetime(masked_obesity["YearStart"], format="%Y")
